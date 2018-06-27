@@ -17,7 +17,8 @@ const prefersHtml = (str) => {
 
 const register = (server) => {
     server.ext('onPreResponse', (request, h) => {
-        const { response } = request;
+        const { response, auth } = request;
+        const { isAuthenticated } = auth;
 
         if (!response.isBoom || !prefersHtml(request.headers.accept)) {
             return h.continue;
@@ -27,6 +28,7 @@ const register = (server) => {
         const isCanned = message === error;
         const context = {
             code    : statusCode,
+            isAuthenticated,
             title   : error || 'Unknown Error',
             message : (isCanned ? '' : message) ||
                 explain(statusCode) ||
