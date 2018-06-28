@@ -2,6 +2,7 @@ import path from 'path';
 import test from 'ava';
 import hapi from 'hapi';
 import boom from 'boom';
+import cookie from 'hapi-auth-cookie';
 import vision from 'vision';
 import handlebars from 'handlebars';
 import errorPage from '.';
@@ -27,7 +28,7 @@ const makeRoute = (option) => {
 
 const makeServer = async (option) => {
     const { plugin, route } = {
-        plugin : [vision, errorPage],
+        plugin : [cookie, vision, errorPage],
         route  : makeRoute(),
         ...option
     };
@@ -158,7 +159,7 @@ test('ignores non-errors', async (t) => {
     t.is(response.payload, 'must succeed');
 });
 
-test.failing('messages that mirror the title are transformed', async (t) => {
+test('messages that mirror the title are transformed', async (t) => {
     const server = await makeServer({
         route : makeRoute({
             handler() {
@@ -166,7 +167,12 @@ test.failing('messages that mirror the title are transformed', async (t) => {
             }
         })
     });
-    const response = await sendRequest(server, { credentials : { user : {} } });
+    server.auth.strategy('session', 'cookie', {
+        password : 'password-should-be-32-characters'
+    });
+    server.auth.default('session');
+
+    const response = await sendRequest(server, { credentials : {} });
 
     t.is(response.statusCode, 400);
     t.is(response.statusMessage, 'Bad Request');

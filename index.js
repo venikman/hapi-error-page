@@ -19,7 +19,6 @@ const register = (server) => {
     server.ext('onPreResponse', (request, h) => {
         const { response, auth } = request;
         const { isAuthenticated } = auth;
-
         if (!response.isBoom || !prefersHtml(request.headers.accept)) {
             return h.continue;
         }
