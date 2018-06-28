@@ -18,7 +18,6 @@ const prefersHtml = (str) => {
 const register = (server) => {
     server.ext('onPreResponse', (request, h) => {
         const { response, auth } = request;
-        const { isAuthenticated } = auth;
         if (!response.isBoom || !prefersHtml(request.headers.accept)) {
             return h.continue;
         }
@@ -26,10 +25,10 @@ const register = (server) => {
         const { statusCode, message, error } = response.output.payload;
         const isCanned = message === error;
         const context = {
-            code    : statusCode,
-            isAuthenticated,
-            title   : error || 'Unknown Error',
-            message : (isCanned ? '' : message) ||
+            code            : statusCode,
+            isAuthenticated : auth.isAuthenticated,
+            title           : error || 'Unknown Error',
+            message         : (isCanned ? '' : message) ||
                 explain(statusCode) ||
                 error ||
                 'Sorry, an unknown problem has arisen.'
