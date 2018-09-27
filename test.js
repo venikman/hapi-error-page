@@ -5,6 +5,7 @@ import boom from 'boom';
 import cookie from 'hapi-auth-cookie';
 import vision from 'vision';
 import handlebars from 'handlebars';
+import joi from 'joi';
 import errorPage from '.';
 
 const sendRequest = (server, option) => {
@@ -203,4 +204,27 @@ test('custom boom error messages pass through', async (t) => {
         '<p>Status code: 400</p>',
         '<p>Message: hi</p>'
     ].join('\n') + '\n');
+});
+
+test('failed response schema return json', async (t) => {
+    const server = await makeServer({
+        route : makeRoute({
+            config : {
+                response : {
+                    schema : {
+                        baz : joi.object().required()
+                    }
+                }
+            },
+            handler() {
+                return {
+                    baz : 'foo'
+                };
+            }
+        })
+    });
+    const response = await sendRequest(server);
+    t.is(response.statusCode, 500);
+    t.is(response.statusMessage, 'Internal Server Error');
+    t.is(response.headers['content-type'], 'application/json; charset=utf-8');
 });
